@@ -96,15 +96,17 @@ def best_route(initial):
     dummy = map("dummy", xpoints, ypoints)
     dummy.calc_length()
     #test that dummy is a copy of our point:
+    '''
     print("looking at %s"%dummy.name)
     for k in dummy.order:
         print("point %d:"%k)
         print(dummy.points[k])
     print("initial length: %f"%dummy.length)
+    '''
     #know that dummy's order is set to 0, 1, 2 like initial's
 
     #now go into the loop that will allow for swaps
-    i = 1000
+    i = 10000
     while i > 1:
         #choose 2 random positions in order to swap
         a = random.randrange(1, len_order) #a and b should never be 0
@@ -114,7 +116,7 @@ def best_route(initial):
             a-=1 #cuz you can do negative indexing but no index>len
         elif a==b:
             a+=1 #to avoid getting a = 0 ever
-        print("i: %d, a: %d, b: %d"%(i, a, b))
+        #print("i: %d, a: %d, b: %d"%(i, a, b))
 
         #make dummy's order
         temp_order = swap(initial.order[:], a, b)
@@ -125,13 +127,13 @@ def best_route(initial):
 
         #now make the comparison to see if initial should assume that order
         difference = dummy.length - initial.length
-        if difference < 0 or difference/i < 1:
+        if difference < 0: #or difference/i < 1:
             #aka, dummy is less than i units longer than initial or dummy is shorter
             initial.order = dummy.order[:] #make it a copy so it doesn't switch each time!
             initial.calc_length() #remember to update the length!
 
         #else, don't change initial
-        i-=1
+        i-=.2
     return 0
 
 def swap(order, a, b):
@@ -165,13 +167,14 @@ def main(argv=None):
     #testing -- printint out info of map
     if initial == -1:
         print("fill_in failed")
-    else:
+    '''else:
         print("testing:")
         print("looking at %s"%initial.name)
         for k in initial.order:
             print("point %d:"%k)
             print(initial.points[k])
         print("initial length: %f"%initial.length)
+    '''
     # do solving
     best_route(initial) #returns initial with updated order
     print("finished best route, final length: %f"%initial.length)
