@@ -68,10 +68,10 @@ to make-point [x y id]
 end
 
 to best-path
-  if dataset != "A4" and dataset != "A8" [
-;    user-message "Not yet"
-;    stop
-;  ]
+  :if dataset != "A4" and dataset != "A8" [
+    user-message "Not yet"
+    stop
+  ]
   let which findSet dataset fullfile
   if which >= 0 [
     let path item (which + 3) fullfile
@@ -234,7 +234,7 @@ CHOOSER
 Dataset
 Dataset
 "A4" "A8" "A9" "A9-2" "A10" "A11" "A12" "A12-2" "A13" "A13-2" "A30" "A50"
-5
+2
 
 BUTTON
 195

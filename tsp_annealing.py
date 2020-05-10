@@ -107,21 +107,29 @@ def best_route(initial):
     i = 1000
     while i > 1:
         #choose 2 random positions in order to swap
-        a = random.choice(range(len_order))
-        b = random.choice(range(len_order))
-        if a==b:
+        a = random.randrange(1, len_order) #a and b should never be 0
+        b = random.randrange(1, len_order)
+        #oh also you shouldn't move the 0th point
+        if a==b and a != 1:
             a-=1 #cuz you can do negative indexing but no index>len
+        elif a==b:
+            a+=1 #to avoid getting a = 0 ever
+        print("i: %d, a: %d, b: %d"%(i, a, b))
+
         #make dummy's order
         temp_order = swap(initial.order[:], a, b)
         dummy.order = temp_order #not sure if all this copying is necessary
+
         #calculate the length of this new route
         dummy.calc_length()
+
         #now make the comparison to see if initial should assume that order
         difference = dummy.length - initial.length
         if difference < 0 or difference/i < 1:
             #aka, dummy is less than i units longer than initial or dummy is shorter
             initial.order = dummy.order[:] #make it a copy so it doesn't switch each time!
             initial.calc_length() #remember to update the length!
+
         #else, don't change initial
         i-=1
     return 0
