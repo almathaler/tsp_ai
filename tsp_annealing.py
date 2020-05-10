@@ -66,11 +66,72 @@ def fill_in(input, name):
     f.close()
     return initial
 
+#simulate annealing
+'''
+we have a dummy map object that has order that's just one swap diff from initial
+ofc do dummy.calc_length() to get the length
+then compare the length of dummy and length of initial to see if
+initial should assume that order. How do you decide that and not take forever?:
+
+so we have a loop, index i = 100 and decreases by 1 each time
+i is the 'heat'
+for each time of the loop, we will make dummy have an order that is just
+initial's order but with one set of points swapped
+difference = dummy.length - initial.length
+if difference < 0, make initial assume dummy's order
+else, if difference/i < 1 (so, dummy is less than i units longer than initial)
+then swap anyways (this is so we don't get stuck in local extrema)
+the point is as the heat decreases, there will be less random swapping
+w/ the intention of focusing in on one extrema
+
+'''
 def best_route(initial):
-    #initial is a map object
-    #does random switching w.r.t temperature
-    #returns the object w/ best route it could find
+    len_order = len(initial.order)
+    #create xpoints and ypoints from initial, b/c they're stored in a dict
+    xpoints = []
+    ypoints = []
+    for k in range(len_order):
+        xpoints.append(initial.points[k][0]) #x
+        ypoints.append(initial.points[k][1]) #y
+    dummy = map("dummy", xpoints, ypoints)
+    dummy.calc_length()
+    #test that dummy is a copy of our point:
+    print("looking at %s"%dummy.name)
+    for k in dummy.order:
+        print("point %d:"%k)
+        print(dummy.points[k])
+    print("initial length: %f"%dummy.length)
+    #know that dummy's order is set to 0, 1, 2 like initial's
+
+    #now go into the loop that will allow for swaps
+    i = 1000
+    while i > 1:
+        #choose 2 random positions in order to swap
+        a = random.choice(range(len_order))
+        b = random.choice(range(len_order))
+        if a==b:
+            a-=1 #cuz you can do negative indexing but no index>len
+        #make dummy's order
+        temp_order = swap(initial.order[:], a, b)
+        dummy.order = temp_order #not sure if all this copying is necessary
+        #calculate the length of this new route
+        dummy.calc_length()
+        #now make the comparison to see if initial should assume that order
+        difference = dummy.length - initial.length
+        if difference < 0 or difference/i < 1:
+            #aka, dummy is less than i units longer than initial or dummy is shorter
+            initial.order = dummy.order[:] #make it a copy so it doesn't switch each time!
+            initial.calc_length() #remember to update the length!
+        #else, don't change initial
+        i-=1
     return 0
+
+def swap(order, a, b):
+    temp = order[a]
+    order[a] = order[b]
+    order[b] = temp
+    return order
+
 def fill_out(output, mapObj):
     f = open(output, 'a')
     f.write('\n')
@@ -104,7 +165,8 @@ def main(argv=None):
             print(initial.points[k])
         print("initial length: %f"%initial.length)
     # do solving
-    best_route(initial) #should modify order of initial
+    best_route(initial) #returns initial with updated order
+    print("finished best route, final length: %f"%initial.length)
     # write out results (from route)
     fill_out(output, initial)
     return 0
