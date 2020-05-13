@@ -68,23 +68,30 @@ def fill_in(input, name):
 
 #simulate annealing
 '''
-we have a dummy map object that has order that's just one swap diff from initial
-ofc do dummy.calc_length() to get the length
-then compare the length of dummy and length of initial to see if
-initial should assume that order. How do you decide that and not take forever?:
+gonna change this, here are the hyperparameters given in
+this demo (https://www.geeksforgeeks.org/simulated-annealing/):
+*Initial and final temperature
 
-so we have a loop, index i = 100 and decreases by 1 each time
-i is the 'heat'
-for each time of the loop, we will make dummy have an order that is just
-initial's order but with one set of points swapped
-difference = dummy.length - initial.length
-if difference < 0, make initial assume dummy's order
-else, if difference/i < 1 (so, dummy is less than i units longer than initial)
-then swap anyways (this is so we don't get stuck in local extrema)
-the point is as the heat decreases, there will be less random swapping
-w/ the intention of focusing in on one extrema
+*Temperature at which iteration terminates
 
+*Decrease in temperature
+
+*Number of iterations of annealing before decreasing temperature
+
+also, I think I should change how it decides if to switch.
+ofc I should keep the if difference < 0.
+But I shouldn't use the difference/i < 1 because it's not 'normalized' (yea idk what that means)
+I think the issue is that I'm confining the program to jumps around the graph that have little y variation
+too quickly. The whole point is that there should be a few random jumps so the
+algo can leave it's local maxima.
+
+i think I should instead just say, if difference is positive, choose a random number between 0 and 1
+if that number is less than 1-1/t, then make the change anyways. this will cause a lot
+of random moves at first but hopefully this is a better approach.
+
+Also I guess I should have more iters per certain temp
 '''
+#I think this should be done 3 times or so to get best route
 def best_route(initial):
     len_order = len(initial.order)
     #create xpoints and ypoints from initial, b/c they're stored in a dict
@@ -93,6 +100,7 @@ def best_route(initial):
     for k in range(len_order):
         xpoints.append(initial.points[k][0]) #x
         ypoints.append(initial.points[k][1]) #y
+    #create dummy
     dummy = map("dummy", xpoints, ypoints)
     dummy.calc_length()
     #test that dummy is a copy of our point:
@@ -106,14 +114,16 @@ def best_route(initial):
     #know that dummy's order is set to 0, 1, 2 like initial's
 
     #now go into the loop that will allow for swaps
-    i = 10000
-    while i > 1:
+    temp = 100
+    i = 4950 #when i is a multiple of 10, decrease temp.
+    cool = .2 #when i%10 == 0, temp-=cool. Can cool 495 times (temp>=1)
+    while temp >= 1:
         #choose 2 random positions in order to swap
         a = random.randrange(1, len_order) #a and b should never be 0
         b = random.randrange(1, len_order)
         #oh also you shouldn't move the 0th point
         if a==b and a != 1:
-            a-=1 #cuz you can do negative indexing but no index>len
+            a-=1
         elif a==b:
             a+=1 #to avoid getting a = 0 ever
         #print("i: %d, a: %d, b: %d"%(i, a, b))
@@ -125,15 +135,19 @@ def best_route(initial):
         #calculate the length of this new route
         dummy.calc_length()
 
+        #set up your chance for annealing
+        chance_anneal = 1 - (1/temp)
         #now make the comparison to see if initial should assume that order
         difference = dummy.length - initial.length
-        if difference < 0: #or difference/i < 1:
+        if difference < 0 or (difference*chance_anneal) < 1: #or difference/i < 1:
             #aka, dummy is less than i units longer than initial or dummy is shorter
             initial.order = dummy.order[:] #make it a copy so it doesn't switch each time!
             initial.calc_length() #remember to update the length!
+        #now change our variables
+        if i%10 == 0:
+            temp -= cool
+        i-=1
 
-        #else, don't change initial
-        i-=.2
     return 0
 
 def swap(order, a, b):
